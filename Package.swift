@@ -39,7 +39,7 @@ let package = Package(
     ],
     dependencies: [
         // Minor releases correspond to Swift versions (i.e., use 0.50x000.y with Swift 5.x)
-        .package(name: "SwiftSyntax", url: "https://github.com/apple/swift-syntax.git", .upToNextMinor(from: "0.50500.0")),
+        .package(name: "SwiftSyntax", url: "https://github.com/apple/swift-syntax.git", .upToNextMajor(from: "0.50500.0")),
         .package(name: "swift-argument-parser", url: "https://github.com/apple/swift-argument-parser.git", .upToNextMajor(from: "0.2.0")),
     ],
     targets: [
