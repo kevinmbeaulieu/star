@@ -121,7 +121,7 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
             class UIView {
             }
             """
-        let expected: [String: Int] = ["UIView": 0]
+        let expected = ["UIView": 0]
         verify(expected: expected, for: sourceString)
     }
 
@@ -133,7 +133,7 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
                 let _ = UILabel()
             }
             """
-        let expected: [String: Int] = ["UIView": 0, "UILabel": 0]
+        let expected = ["UIView": 0, "UILabel": 0]
         verify(expected: expected, for: sourceString)
     }
 
@@ -165,7 +165,7 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
             struct UIView {
             }
             """
-        let expected: [String: Int] = ["UIView": 0]
+        let expected = ["UIView": 0]
         verify(expected: expected, for: sourceString)
     }
 
@@ -176,7 +176,7 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
             extension UIView {
             }
             """
-        let expected: [String: Int] = ["UIView": 0]
+        let expected = ["UIView": 0]
         verify(expected: expected, for: sourceString)
     }
 
@@ -202,14 +202,14 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
     /// *Do not* count constructor calls relative to a containing module/class if no module name provided
     func testNamespacedFunctionCallWithoutModuleName() {
         let sourceString = "let _ = Foo.Bar()"
-        let expected: [String: Int] = ["Bar": 0]
+        let expected = ["Bar": 0]
         verify(expected: expected, for: sourceString)
     }
 
     /// *Do not* count function calls relative to a containing module/class other than the provided module name
     func testNamespacedFunctionCallInNonModule() {
         let sourceString = "let _ = NotMyModule.Foo()"
-        let expected: [String: Int] = ["Foo": 0]
+        let expected = ["Foo": 0]
         let moduleName = "MyModule"
         verify(expected: expected, for: sourceString, moduleName: moduleName)
     }
@@ -252,14 +252,14 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
     /// *Do not* count property references relative to a containing module/class if no module name provided
     func testNamespacedPropertyReferenceWithoutModuleName() {
         let sourceString = "let _ = Foo.Bar.baz"
-        let expected: [String: Int] = ["Bar": 0]
+        let expected = ["Bar": 0]
         verify(expected: expected, for: sourceString)
     }
 
     /// *Do not* count property references relative to a containing module/class other than the provided module name
     func testNamespacedPropertyReferenceInNonModule() {
         let sourceString = "let _ = NotMyModule.Foo.bar"
-        let expected: [String: Int] = ["Foo": 0]
+        let expected = ["Foo": 0]
         let moduleName = "MyModule"
         verify(expected: expected, for: sourceString, moduleName: moduleName)
     }
@@ -267,7 +267,7 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
     /// *Do not* count property references relative to the provided module name in addition to some other module/class
     func testPropertyReferenceInModuleInNonModule() {
         let sourceString = "let _ = NotMyModule.MyModule.Foo.bar"
-        let expected: [String: Int] = ["Foo": 0]
+        let expected = ["Foo": 0]
         let moduleName = "MyModule"
         verify(expected: expected, for: sourceString, moduleName: moduleName)
     }
@@ -291,14 +291,14 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
     /// *Do not* count contents of a comment
     func testComment() {
         let sourceString = "// This is a comment about UIView"
-        let expected: [String: Int] = ["UIView": 0]
+        let expected = ["UIView": 0]
         verify(expected: expected, for: sourceString)
     }
 
     /// *Do not* count contents of a string
     func testString() {
         let sourceString = "\"UIView\""
-        let expected: [String: Int] = ["UIView": 0]
+        let expected = ["UIView": 0]
         verify(expected: expected, for: sourceString)
     }
 
@@ -321,21 +321,21 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
     /// *Do not* count type casting
     func testTypeCast() {
         let sourceString = "foo as UIView"
-        let expected: [String: Int] = ["UIView": 0]
+        let expected = ["UIView": 0]
         verify(expected: expected, for: sourceString)
     }
 
     /// *Do not* count optional type casting
     func testOptionalTypeCasting() {
         let sourceString = "foo as? UIView"
-        let expected: [String: Int] = ["UIView": 0]
+        let expected = ["UIView": 0]
         verify(expected: expected, for: sourceString)
     }
 
     /// *Do not* count force casting
     func testForceCasting() {
         let sourceString = "foo as! UIView"
-        let expected: [String: Int] = ["UIView": 0]
+        let expected = ["UIView": 0]
         verify(expected: expected, for: sourceString)
     }
 

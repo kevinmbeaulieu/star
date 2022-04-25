@@ -56,8 +56,6 @@ analyzer_rules:
 
 indentation: 4
 
-weak_delegate: error
-
 function_parameter_count:
   warning: 8
   error: 8
