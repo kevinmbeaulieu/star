@@ -1,6 +1,6 @@
-[![Build Status](https://badgen.net/travis/thumbtack/star)](https://travis-ci.com/thumbtack/star)
-[![SPM Latest Version](https://img.shields.io/github/v/release/thumbtack/star?label=SPM)](https://swiftpackageindex.com/thumbtack/star)
-[![License](https://img.shields.io/github/license/thumbtack/star?color=important)](https://github.com/thumbtack/star/blob/main/LICENSE)
+[![Build Status](https://badgen.net/github/checks/kevinmbeaulieu/star)](https://github.com/kevinmbeaulieu/star/actions/workflows/ci.yml?query=branch%3Amain)
+[![SPM Latest Version](https://img.shields.io/github/v/release/kevinmbeaulieu/star?label=SPM)](https://swiftpackageindex.com/kevinmbeaulieu/star)
+[![License](https://img.shields.io/github/license/kevinmbeaulieu/star?color=important)](https://github.com/kevinmbeaulieu/star/blob/main/LICENSE)
 
 # Swift Type Adoption Reporter (STAR)
 
@@ -98,9 +98,9 @@ let package = Package(
 If you have ideas to make STAR more useful, open an issue or submit a pull request! See below for instructions on building/testing locally.
 
 ```
-$ git clone git@github.com/thumbtack/star.git
+$ git clone git@github.com/kevinmbeaulieu/star.git
 $ cd star
-$ open -a Xcode .
+$ xed .
 ```
 
 ### To build & run locally:
@@ -118,10 +118,5 @@ $ swift test
 ```
 
 #### With Xcode:
-1. Create Xcode project:
-
-    ```
-    $ swift package generate-xcodeproj
-    ```
-2. Open `SwiftTypeAdoptionReporter.xcodeproj`
+1. Open project in Xcode with `xed .`
 3. In Xcode, **Product -> Test**
