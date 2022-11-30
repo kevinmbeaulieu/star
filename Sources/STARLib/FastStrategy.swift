@@ -14,6 +14,7 @@
 
 import Foundation
 import SwiftSyntax
+import SwiftSyntaxParser
 
 public class FastStrategy: SyntaxVisitor, Strategy {
     public var includeSyntax: Set<SyntaxType>
