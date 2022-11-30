@@ -6,6 +6,8 @@
 
 Generate reports on how frequently specified Swift types are being used in your iOS codebase with a simple command-line interface.
 
+_**I will be maintaining this fork rather than the original [thumbtack/star](https://www.github.com/thumbtack/star) since I no longer work at Thumbtack and was the main contributor to the project.**_
+
 ## Install
 
 ```
