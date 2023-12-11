@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import Foundation
+import SwiftParser
 import SwiftSyntax
-import SwiftSyntaxParser
 
 public class FastStrategy: SyntaxVisitor, Strategy {
     public var includeSyntax: Set<SyntaxType>
@@ -23,12 +23,14 @@ public class FastStrategy: SyntaxVisitor, Strategy {
                 moduleName: String?,
                 includeSyntax: Set<SyntaxType>,
                 paths: [URL],
+                viewMode: SyntaxTreeViewMode = .sourceAccurate,
                 verbose: Bool = false) {
         self.types = types
         self.moduleName = moduleName
         self.includeSyntax = includeSyntax
         self.paths = paths
         self.verbose = verbose
+        super.init(viewMode: viewMode)
     }
 
     public func findUsageCounts() throws -> [String: TypeUsage] {
@@ -87,20 +89,20 @@ public class FastStrategy: SyntaxVisitor, Strategy {
     override public func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         guard let base = node.base else { return .visitChildren }
 
-        if let baseIdentifierExpr = base.as(IdentifierExprSyntax.self) {
-            if case let .identifier(baseIdentifier) = baseIdentifierExpr.identifier.tokenKind {
+        if let baseIdentifierExpr = base.as(DeclReferenceExprSyntax.self) {
+            if case let .identifier(baseIdentifier) = baseIdentifierExpr.baseName.tokenKind {
                 if includeSyntax.contains(.staticPropertyReference),
                    types.contains(baseIdentifier) {
-                    increment(baseIdentifier, token: baseIdentifierExpr.identifier)
+                    increment(baseIdentifier, token: baseIdentifierExpr.baseName)
                     return .skipChildren
                 }
 
                 if includeSyntax.contains(.constructorCall),
                    let moduleName = moduleName,
                    baseIdentifier == moduleName,
-                   case let .identifier(identifier) = node.name.tokenKind,
+                   case let .identifier(identifier) = node.declName.baseName.tokenKind,
                    types.contains(identifier) {
-                    increment(identifier, token: node.name)
+                    increment(identifier, token: node.declName.baseName)
                     return .skipChildren
                 }
             }
@@ -110,12 +112,12 @@ public class FastStrategy: SyntaxVisitor, Strategy {
         } else if let baseMemberAccessExpr = base.as(MemberAccessExprSyntax.self) {
             if includeSyntax.contains(.staticPropertyReference),
                let moduleName = moduleName,
-               let innerBaseIdentifierExpr = baseMemberAccessExpr.base?.as(IdentifierExprSyntax.self),
-               case let .identifier(innerBaseIdentifier) = innerBaseIdentifierExpr.identifier.tokenKind,
+               let innerBaseIdentifierExpr = baseMemberAccessExpr.base?.as(DeclReferenceExprSyntax.self),
+               case let .identifier(innerBaseIdentifier) = innerBaseIdentifierExpr.baseName.tokenKind,
                innerBaseIdentifier == moduleName,
-               case let .identifier(innerIdentifier) = baseMemberAccessExpr.name.tokenKind,
+               case let .identifier(innerIdentifier) = baseMemberAccessExpr.declName.baseName.tokenKind,
                types.contains(innerIdentifier) {
-                increment(innerIdentifier, token: baseMemberAccessExpr.name)
+                increment(innerIdentifier, token: baseMemberAccessExpr.declName.baseName)
                 return .skipChildren
             }
 
@@ -125,8 +127,8 @@ public class FastStrategy: SyntaxVisitor, Strategy {
         return .visitChildren
     }
 
-    override public func visit(_ node: MemberTypeIdentifierSyntax) -> SyntaxVisitorContinueKind {
-        if let moduleName = moduleName, let baseToken = node.baseType.as(SimpleTypeIdentifierSyntax.self)?.name {
+    override public func visit(_ node: MemberTypeSyntax) -> SyntaxVisitorContinueKind {
+        if let moduleName = moduleName, let baseToken = node.baseType.as(IdentifierTypeSyntax.self)?.name {
             switch baseToken.tokenKind {
             case let .identifier(baseTokenIdentifier) where moduleName == baseTokenIdentifier:
                 return .visitChildren
@@ -139,7 +141,7 @@ public class FastStrategy: SyntaxVisitor, Strategy {
     }
 
     override public func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        switch node.identifier.tokenKind {
+        switch node.name.tokenKind {
         case let .identifier(identifier) where types.contains(identifier):
             if verbose {
                 print("Skipping contents of \(identifier)'s implementation")
@@ -152,7 +154,7 @@ public class FastStrategy: SyntaxVisitor, Strategy {
     }
 
     override public func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
-        switch node.identifier.tokenKind {
+        switch node.name.tokenKind {
         case let .identifier(identifier) where types.contains(identifier):
             if verbose {
                 print("Skipping contents of \(identifier)'s implementation")
@@ -165,7 +167,7 @@ public class FastStrategy: SyntaxVisitor, Strategy {
     }
 
     override public func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if let typeIdentifier = node.extendedType.as(SimpleTypeIdentifierSyntax.self) {
+        if let typeIdentifier = node.extendedType.as(IdentifierTypeSyntax.self) {
             switch typeIdentifier.name.tokenKind {
             case let .identifier(identifier) where types.contains(identifier):
                 if verbose {
@@ -182,7 +184,7 @@ public class FastStrategy: SyntaxVisitor, Strategy {
     }
 
     override public func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        switch node.identifier.tokenKind {
+        switch node.name.tokenKind {
         case let .identifier(identifier) where types.contains(identifier):
             if verbose {
                 print("Skipping contents of \(identifier)'s implementation")
@@ -192,10 +194,6 @@ public class FastStrategy: SyntaxVisitor, Strategy {
         default:
             return .visitChildren
         }
-    }
-
-    override public func visit(_: UnknownSyntax) -> SyntaxVisitorContinueKind {
-        .skipChildren
     }
 
     override public func visit(_: InOutExprSyntax) -> SyntaxVisitorContinueKind {
@@ -218,14 +216,14 @@ public class FastStrategy: SyntaxVisitor, Strategy {
         .skipChildren
     }
 
-    override public func visit(_: TypealiasDeclSyntax) -> SyntaxVisitorContinueKind {
+    override public func visit(_: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 
-    override public func visit(_ node: TypeInheritanceClauseSyntax) -> SyntaxVisitorContinueKind {
+    override public func visit(_ node: InheritanceClauseSyntax) -> SyntaxVisitorContinueKind {
         if includeSyntax.contains(.typeInheritance) {
-            for inheritedType in node.inheritedTypeCollection {
-                guard let typeIdentifier = inheritedType.typeName.as(SimpleTypeIdentifierSyntax.self) else { continue }
+            for inheritedType in node.inheritedTypes {
+                guard let typeIdentifier = inheritedType.type.as(IdentifierTypeSyntax.self) else { continue }
 
                 switch typeIdentifier.name.tokenKind {
                 case let .identifier(identifier) where types.contains(identifier):
@@ -245,10 +243,6 @@ public class FastStrategy: SyntaxVisitor, Strategy {
     }
 
     override public func visit(_: FunctionSignatureSyntax) -> SyntaxVisitorContinueKind {
-        .skipChildren
-    }
-
-    override public func visit(_: AsTypePatternSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 
@@ -282,6 +276,9 @@ public class FastStrategy: SyntaxVisitor, Strategy {
 
             let fileEnumerator = FileManager.default.enumerator(atPath: directory.path)
             while let fileName = fileEnumerator?.nextObject() as? String {
+                // Skip non-Swift files
+                if !fileName.hasSuffix(".swift") { continue }
+
                 let file = directory.appendingPathComponent(fileName, isDirectory: false)
 
                 if !FileManager.default.fileExists(atPath: file.path, isDirectory: isDirectoryPointer) || isDirectoryPointer.pointee.boolValue {
@@ -311,7 +308,8 @@ public class FastStrategy: SyntaxVisitor, Strategy {
 
         currentFile = file
 
-        let parsedSource = try SyntaxParser.parse(file)
+        let source: String = try String(contentsOf: file)
+        let parsedSource = Parser.parse(source: source)
         walk(parsedSource)
     }
 
