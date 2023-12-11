@@ -397,7 +397,7 @@ final class SwiftTypeAdoptionReporterTests: XCTestCase {
 
             setUp?(strategy)
 
-            let actual = (try strategy.findUsageCounts()).mapValues({ $0.usageCount })
+            let actual = try (strategy.findUsageCounts()).mapValues({ $0.usageCount })
             XCTAssertEqual(expected, actual, file: file, line: line)
         } catch {
             XCTFail("Failed with error \(String(describing: error))", file: file, line: line)
