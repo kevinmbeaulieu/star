@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import Foundation
-import SwiftSyntax
 import SwiftParser
+import SwiftSyntax
 
 public class FastStrategy: SyntaxVisitor, Strategy {
     public var includeSyntax: Set<SyntaxType>
